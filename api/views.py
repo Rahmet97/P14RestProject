@@ -1,3 +1,6 @@
+from rest_framework.permissions import IsAuthenticated
+from rest_framework_simplejwt.authentication import JWTAuthentication
+
 from .models import Blog, Hashtag
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
@@ -12,6 +15,7 @@ def hello(request):
 
 
 class BlogAPIView(APIView):
+    permission_classes = (IsAuthenticated,)
 
     def get(self, request):
         blogs = Blog.objects.all().order_by('-created_at')
