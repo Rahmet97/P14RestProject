@@ -1,12 +1,12 @@
 from rest_framework.permissions import IsAuthenticated
-from rest_framework_simplejwt.authentication import JWTAuthentication
 
+from accounts.permissions import IsAdminPermission
 from .models import Blog, Hashtag
 from rest_framework.decorators import api_view
 from rest_framework.response import Response
 from rest_framework.views import APIView
 
-from .serializers import BlogSerializer
+from .serializers import BlogSerializer, BlogSerializerForPost
 
 
 @api_view(['GET'])
@@ -20,13 +20,17 @@ class BlogAPIView(APIView):
     def get(self, request):
         blogs = Blog.objects.all().order_by('-created_at')
         blog_serializer = BlogSerializer(blogs, many=True)
-        # blogs_data = []
-        # for blog in blogs:
-        #     blog_dict = {
-        #         'ID': blog.id,
-        #         'title': blog.title,
-        #         'description': blog.description,
-        #         'created_at': blog.created_at
-        #     }
-        #     blogs_data.append(blog_dict)
+        return Response(blog_serializer.data)
+
+
+class AddBlogAPIView(APIView):
+    permission_classes = (IsAdminPermission,)
+
+    def post(self, request):
+        request.data._mutable = True
+        data = request.data
+        data['user_id'] = request.user.id
+        blog_serializer = BlogSerializerForPost(data=data)
+        blog_serializer.is_valid(raise_exception=True)
+        blog_serializer.save()
         return Response(blog_serializer.data)
