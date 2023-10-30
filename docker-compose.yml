@@ -5,8 +5,16 @@ services:
     build: .
     container_name: django
     command: python manage.py runserver 0.0.0.0:8000
+    environment:
+      - POSTGRES_NAME=p14_db
+      - POSTGRES_USER=p14_db_admin
+      - POSTGRES_PASSWORD=p14_db_admin
+      - POSTGRES_HOST=db
+      - POSTGRES_PORT=5432
     volumes:
       - .:/app
+    ports:
+      - '8000:8000'
     depends_on:
       - db
       - celery
@@ -14,18 +22,17 @@ services:
 
   db:
     image: postgres:15.3-alpine
-    restart: always
     container_name: db
     environment:
       - POSTGRES_NAME=p14_db
-      - POSTGRES_USER=postgres
-      - POSTGRES_PASSWORD=postgres
+      - POSTGRES_USER=p14_db_admin
+      - POSTGRES_PASSWORD=p14_db_admin
       - POSTGRES_HOST=db
       - POSTGRES_PORT=5432
     volumes:
       - pg_data:/var/lib/postgresql/data/
-    expose:
-      - '5432'
+    ports:
+      - '5432:5432'
 
   redis:
     image: redis:6-alpine

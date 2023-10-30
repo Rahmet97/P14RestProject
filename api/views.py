@@ -1,3 +1,5 @@
+import os
+
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.permissions import IsAdminPermission
@@ -8,11 +10,14 @@ from rest_framework.views import APIView
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, CreateAPIView, ListAPIView, GenericAPIView
 
 from .serializers import BlogSerializer, BlogSerializerForPost, SubscriberSerializer
+from dotenv import load_dotenv
+
+load_dotenv()
 
 
 @api_view(['GET'])
 def hello(request):
-    return Response({'message': 'Hello World!'})
+    return Response({'message': 'Hello World!', 'host': os.getenv('POSTGRES_HOST')})
 
 
 # class BlogAPIView(APIView):

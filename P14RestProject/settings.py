@@ -47,6 +47,7 @@ INSTALLED_APPS = [
     # custom
     'api',
     'accounts',
+    'one_id',
 
     # third-party
     'rest_framework',
@@ -103,7 +104,7 @@ SWAGGER_SETTINGS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': os.environ.get('POSTGRES_NAME'),
+        'NAME': 'p14_db_admin',  # os.environ.get('POSTGRES_NAME'),
         'USER': os.environ.get('POSTGRES_USER'),
         'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
         'HOST': os.environ.get('POSTGRES_HOST'),
