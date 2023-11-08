@@ -4,9 +4,9 @@ from rest_framework.permissions import IsAuthenticated
 
 from accounts.permissions import IsAdminPermission
 from .models import Blog, Hashtag
-from rest_framework.decorators import api_view
+from rest_framework.decorators import api_view, APIView
 from rest_framework.response import Response
-from rest_framework.views import APIView
+from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, CreateAPIView, ListAPIView, GenericAPIView
 
 from .serializers import BlogSerializer, BlogSerializerForPost, SubscriberSerializer
@@ -71,22 +71,38 @@ def hello(request):
 #     def delete(self, request, pk):
 #         self.get_object(pk).delete()
 #         return Response(status=204)
-class UpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
-    queryset = Blog.objects.all()
-    serializer_class = BlogSerializerForPost
-    permission_classes = (IsAdminPermission,)
+# class UpdateDestroyAPIView(RetrieveUpdateDestroyAPIView):
+#     queryset = Blog.objects.all()
+#     serializer_class = BlogSerializerForPost
+#     permission_classes = (IsAdminPermission,)
+#
+#
+# class AddBlogAPIView(CreateAPIView):
+#     queryset = Blog.objects.all()
+#     serializer_class = BlogSerializerForPost
+#     permission_classes = (IsAdminPermission,)
+#
+#
+# class BlogAPIView(ListAPIView):
+#     queryset = Blog.objects.all()
+#     serializer_class = BlogSerializer
+#     permission_classes = (IsAuthenticated,)
 
 
-class AddBlogAPIView(CreateAPIView):
-    queryset = Blog.objects.all()
-    serializer_class = BlogSerializerForPost
-    permission_classes = (IsAdminPermission,)
-
-
-class BlogAPIView(ListAPIView):
+class BlogViewSet(ModelViewSet):
     queryset = Blog.objects.all()
     serializer_class = BlogSerializer
     permission_classes = (IsAuthenticated,)
+
+    def get_serializer_class(self):
+        if self.request.method in ('POST', 'PUT', 'PATCH'):
+            return BlogSerializerForPost
+        return BlogSerializer
+
+    def get_permissions(self):
+        if self.request.method in ('POST', 'PUT', 'PATCH'):
+            return (IsAdminPermission,)
+        return (IsAuthenticated,)
 
 
 class SubscriberAPIView(GenericAPIView):
