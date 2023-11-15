@@ -1,0 +1,20 @@
+{% load static %}
+
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <title>Chat</title>
+    <link rel="stylesheet" href="{% static 'css/styles.css' %}">
+</head>
+<body>
+    <div id="chat" data-room="{{ room_name }}">
+        <div id="chat-window"></div>
+        <form id="chat-form">
+            <input type="text" id="chat-input" autocomplete="off" placeholder="Type your message...">
+            <button type="submit">Send</button>
+        </form>
+    </div>
+    <script src="{% static 'js/chat.js' %}"></script>
+</body>
+</html>

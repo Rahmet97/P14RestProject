@@ -1,38 +1,50 @@
 version: '3'
 
 services:
-  django:
-    build: .
-    container_name: django
-    command: python manage.py runserver 0.0.0.0:8000
-    environment:
-      - POSTGRES_NAME=p14_db
-      - POSTGRES_USER=p14_db_admin
-      - POSTGRES_PASSWORD=p14_db_admin
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
+  elasticsearch:
+    image: docker.elastic.co/elasticsearch/elasticsearch:7.15.1
     volumes:
-      - .:/app
-    ports:
-      - '8000:8000'
-    depends_on:
-      - db
-      - celery
-      - redis
+      - ./data/elastic:/var/lib/elasticsearch/data
+    environment:
+      - discovery.type=single-node
+    mem_limit: 2g
 
   db:
     image: postgres:15.3-alpine
     container_name: db
-    environment:
-      - POSTGRES_NAME=p14_db
-      - POSTGRES_USER=p14_db_admin
-      - POSTGRES_PASSWORD=p14_db_admin
-      - POSTGRES_HOST=db
-      - POSTGRES_PORT=5432
     volumes:
       - pg_data:/var/lib/postgresql/data/
     ports:
       - '5432:5432'
+    env_file:
+      - ./.env
+    environment:
+      - POSTGRES_NAME=$DB_NAME
+      - POSTGRES_USER=$DB_USER
+      - POSTGRES_PASSWORD=$DB_PASSWORD
+      - POSTGRES_HOST=$DB_HOST
+      - POSTGRES_PORT=$DB_PORT
+
+  django:
+    build: .
+    container_name: django
+    command: python manage.py runserver 0.0.0.0:8000
+    volumes:
+      - .:/app
+    ports:
+      - '8000:8000'
+    env_file:
+      - ./.env
+    environment:
+      - DJANGO_DB_NAME=$DB_NAME
+      - DJANGO_DB_USER=$DB_USER
+      - DJANGO_DB_PASSWORD=$DB_PASSWORD
+      - DJANGO_DB_HOST=$DB_HOST
+      - DJANGO_DB_PORT=$DB_PORT
+    depends_on:
+      - db
+      - celery
+      - redis
 
   redis:
     image: redis:6-alpine

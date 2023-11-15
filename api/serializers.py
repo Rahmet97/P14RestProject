@@ -1,4 +1,6 @@
 from rest_framework.serializers import Serializer, CharField, DateTimeField, IntegerField, ModelSerializer
+from django_elasticsearch_dsl_drf.serializers import DocumentSerializer
+from .documents import BlogDocument
 from .models import Blog, Hashtag, Subscriber
 from .tasks import send_email
 
@@ -40,3 +42,17 @@ class SubscriberSerializer(ModelSerializer):
     class Meta:
         model = Subscriber
         fields = '__all__'
+
+
+class QuerySerializer(Serializer):
+    q = CharField(required=False)
+
+
+class BlogDocumentSerializer(DocumentSerializer):
+    class Meta:
+        document = BlogDocument
+
+        fields = (
+            'title',
+            'description'
+        )

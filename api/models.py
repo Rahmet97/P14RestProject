@@ -13,6 +13,7 @@ class Hashtag(models.Model):
 class Blog(models.Model):
     title = models.CharField(max_length=100)
     description = models.TextField()
+    price = models.FloatField(default=0)
     hashtag = models.ManyToManyField(Hashtag)
     created_at = models.DateTimeField(auto_now_add=True)
 

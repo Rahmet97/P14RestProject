@@ -1,0 +1,35 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>Real-Time Updates</title>
+</head>
+<body>
+    <div id="messages"></div>
+
+    <script>
+        const socket = new WebSocket("ws://" + window.location.host + "/ws/some_path/");
+
+        socket.onopen = function (event) {
+            console.log("WebSocket connection opened:", event);
+        };
+
+        socket.onmessage = function (event) {
+            const messagesDiv = document.getElementById("messages");
+            const messageParagraph = document.createElement("p");
+            messageParagraph.innerText = event.data;
+            messagesDiv.appendChild(messageParagraph);
+        };
+
+        socket.onclose = function (event) {
+            console.log("WebSocket connection closed:", event);
+        };
+
+        // For demonstration purposes, you can send a message to the server when the page loads
+        socket.onopen = function (event) {
+            socket.send("Hello, Server!");
+        };
+    </script>
+</body>
+</html>

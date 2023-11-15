@@ -14,6 +14,7 @@ from datetime import timedelta
 from pathlib import Path
 
 from dotenv import load_dotenv
+from elasticsearch_dsl import connections
 
 load_dotenv()
 
@@ -36,6 +37,8 @@ ALLOWED_HOSTS = ['*']
 # Application definition
 
 INSTALLED_APPS = [
+    'daphne',
+
     'django.contrib.admin',
     'django.contrib.auth',
     'django.contrib.contenttypes',
@@ -58,11 +61,16 @@ INSTALLED_APPS = [
     'allauth.socialaccount.providers.facebook',
     'allauth.socialaccount.providers.google',
     'allauth.socialaccount.providers.github',
+    'channels',
+    'django_elasticsearch_dsl',
+    'django_elasticsearch_dsl_drf',
+    'django_filters',
 
     # custom
     'api',
     'accounts',
     'one_id',
+    'chat',
 ]
 
 MIDDLEWARE = [
@@ -97,6 +105,7 @@ TEMPLATES = [
 ]
 
 WSGI_APPLICATION = 'P14RestProject.wsgi.application'
+ASGI_APPLICATION = 'P14RestProject.asgi.application'
 
 SWAGGER_SETTINGS = {
    'SECURITY_DEFINITIONS': {
@@ -115,12 +124,16 @@ SWAGGER_SETTINGS = {
 DATABASES = {
     'default': {
         'ENGINE': 'django.db.backends.postgresql_psycopg2',
-        'NAME': 'p14_db_admin',  # os.environ.get('POSTGRES_NAME'),
-        'USER': os.environ.get('POSTGRES_USER'),
-        'PASSWORD': os.environ.get('POSTGRES_PASSWORD'),
-        'HOST': os.environ.get('POSTGRES_HOST'),
-        'PORT': os.environ.get('POSTGRES_PORT')
+        'NAME': 'p14_db_admin',  # os.environ.get('DJANGO_DB_NAME'),
+        'USER': os.environ.get('DJANGO_DB_USER'),
+        'PASSWORD': os.environ.get('DJANGO_DB_PASSWORD'),
+        'HOST': os.environ.get('DJANGO_DB_HOST'),
+        'PORT': os.environ.get('DJANGO_DB_PORT')
     }
+    # 'default': {
+    #     'ENGINE': 'django.db.backends.sqlite3',
+    #     'NAME': BASE_DIR / 'db.sqlite3'
+    # }
 }
 
 
@@ -141,6 +154,19 @@ AUTH_PASSWORD_VALIDATORS = [
         'NAME': 'django.contrib.auth.password_validation.NumericPasswordValidator',
     },
 ]
+
+ELASTICSEARCH_DSL = {
+    'default': {
+        'hosts': 'http://elasticsearch:9200',
+    },
+}
+
+
+connections.create_connection(hosts=['http://elasticsearch:9200'])
+
+ELASTICSEARCH_INDEX_NAMES = {
+    'api.BlogDocument': 'api'
+}
 
 REST_FRAMEWORK = {
     'DEFAULT_AUTHENTICATION_CLASSES': (
@@ -191,6 +217,16 @@ AUTHENTICATION_BACKENDS = (
     # 'allauth.socialaccount.auth_backends.AuthenticationBackend',
 )
 
+CHANNEL_LAYERS = {
+    'default': {
+        'BACKEND': 'channels_redis.core.RedisChannelLayer',
+        'CONFIG': {
+            "hosts": [('redis', 6379)],
+        },
+    },
+}
+
+
 SOCIALACCOUNT_PROVIDERS = {
     'github': {
         'SCOPE': [
@@ -220,6 +256,7 @@ USE_TZ = True
 # https://docs.djangoproject.com/en/4.2/howto/static-files/
 
 STATIC_URL = 'static/'
+STATIC_ROOT = BASE_DIR / 'static'
 
 # Default primary key field type
 # https://docs.djangoproject.com/en/4.2/ref/settings/#default-auto-field

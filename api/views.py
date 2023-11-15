@@ -1,16 +1,29 @@
 import os
 
+from elasticsearch_dsl import Search
+from drf_yasg.utils import swagger_auto_schema
 from rest_framework.permissions import IsAuthenticated
 
 from accounts.permissions import IsAdminPermission
+from .custom_filters import BlogFilter
 from .models import Blog, Hashtag
 from rest_framework.decorators import api_view, APIView
 from rest_framework.response import Response
 from rest_framework.viewsets import ModelViewSet
 from rest_framework.generics import RetrieveUpdateDestroyAPIView, CreateAPIView, ListAPIView, GenericAPIView
 
-from .serializers import BlogSerializer, BlogSerializerForPost, SubscriberSerializer
+from .serializers import BlogSerializer, BlogSerializerForPost, SubscriberSerializer, QuerySerializer
 from dotenv import load_dotenv
+
+from django_elasticsearch_dsl_drf.constants import SUGGESTER_COMPLETION
+from django_elasticsearch_dsl_drf.filter_backends import SearchFilterBackend, FilteringFilterBackend, \
+    SuggesterFilterBackend, FunctionalSuggesterFilterBackend
+from django_elasticsearch_dsl_drf.viewsets import DocumentViewSet
+
+from django_filters import rest_framework as filters
+
+from .documents import BlogDocument
+from .serializers import BlogDocumentSerializer
 
 load_dotenv()
 
@@ -114,3 +127,53 @@ class SubscriberAPIView(GenericAPIView):
         serializer.is_valid(raise_exception=True)
         serializer.save()
         return Response(serializer.data)
+
+
+# class SearchAPIView(GenericAPIView):
+#     serializer_class = BlogSerializer
+#
+#     @swagger_auto_schema(query_serializer=QuerySerializer)
+#     def get(self, request):
+#         query = request.query_params.get('q', '')
+#         search = Search(index='api').query('multi_match', query=query, fields=('title', 'description'))
+#         results = [hit.to_dict() for hit in search.execute()]
+#         return Response(results)
+
+
+class SearchDocumentViewSet(DocumentViewSet):
+    document = BlogDocument
+    serializer_class = BlogDocumentSerializer
+
+    filter_backends = [
+        FilteringFilterBackend,
+        SearchFilterBackend,
+        SuggesterFilterBackend,
+        FunctionalSuggesterFilterBackend
+    ]
+
+    search_fields = (
+        'title',
+        'description',
+    )
+
+    filter_fields = {
+        'title': 'title',
+        'description': 'description',
+    }
+
+    suggester_fields = {
+        'title': {
+            'field': 'title.suggest',
+            'suggesters': [
+                SUGGESTER_COMPLETION,
+            ],
+        }
+    }
+
+
+class BlogFilterAPIView(ListAPIView):
+    queryset = Blog.objects.all()
+    serializer_class = BlogSerializer
+    permission_classes = ()
+    filter_backends = (filters.DjangoFilterBackend,)
+    filterset_class = BlogFilter
